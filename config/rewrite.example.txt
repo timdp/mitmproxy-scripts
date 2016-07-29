@@ -1,0 +1,2 @@
+REWRITE http://example.com/app.min.js http://example.com/app.js
+REDIRECT https://example.com/secure http://example.com/insecure
