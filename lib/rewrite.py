@@ -8,13 +8,13 @@ class Action(object):
         return self.__class__.__name__ + "[" + self.url + "]"
 
 class RewriteAction(Action):
-    def perform(self, flow):
-        flow.request.url = self.url
+    def perform(self, flow, qs):
+        flow.request.url = self.url + qs
 
 class RedirectAction(Action):
-    def perform(self, flow):
+    def perform(self, flow, qs):
         resp = HTTPResponse("HTTP/1.1", 302, "Found",
-                            Headers(Location=self.url), "")
+                            Headers(Location = self.url + qs), "")
         flow.reply.send(resp)
 
 def action_factory(actionType, destination):
@@ -36,7 +36,13 @@ with open("config/rewrite.txt") as f:
         print "Registered action: " + url + " -> " + str(action)
 
 def rewrite(flow):
-    request_url = flow.request.url
+    try:
+        pos = flow.request.url.index("?")
+        request_url = flow.request.url[:pos]
+        qs = flow.request.url[pos:]
+    except:
+        request_url = flow.request.url
+        qs = ""
     if request_url in actions:
         print "Performing action for " + request_url + ": " + str(actions[request_url])
-        actions[url].perform(flow)
+        actions[request_url].perform(flow, qs)
