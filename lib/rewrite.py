@@ -1,5 +1,4 @@
-from mitmproxy.models import HTTPResponse
-from netlib.http import Headers
+from mitmproxy.http import HTTPResponse
 
 class Action(object):
     def __init__(self, _url):
@@ -13,9 +12,11 @@ class RewriteAction(Action):
 
 class RedirectAction(Action):
     def perform(self, flow, qs):
-        resp = HTTPResponse("HTTP/1.1", 302, "Found",
-                            Headers(Location = self.url + qs), "")
-        flow.reply.send(resp)
+        flow.response = HTTPResponse.make(
+            302,
+            b"",
+            {"Location": self.url + qs}
+        )
 
 def action_factory(actionType, destination):
     actionType = actionType.lower()
@@ -33,7 +34,7 @@ with open("config/rewrite.txt") as f:
         (action_type, url, dest) = line.split()
         action = action_factory(action_type, dest)
         actions[url] = action
-        print "Registered action: " + url + " -> " + str(action)
+        print("Registered action: " + url + " -> " + str(action))
 
 def rewrite(flow):
     try:
@@ -44,5 +45,5 @@ def rewrite(flow):
         request_url = flow.request.url
         qs = ""
     if request_url in actions:
-        print "Performing action for " + request_url + ": " + str(actions[request_url])
+        print("Performing action for " + request_url + ": " + str(actions[request_url]))
         actions[request_url].perform(flow, qs)
