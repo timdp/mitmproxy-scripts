@@ -19,7 +19,7 @@ class Action(object):
                 dest += "&"
             else:
                 dest += "?"
-            dest += qs
+            dest += qs[1:]
         return dest
 
 class RewriteAction(Action):
